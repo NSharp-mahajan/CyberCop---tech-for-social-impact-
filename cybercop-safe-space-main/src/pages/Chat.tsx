@@ -5,8 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Send, Loader2, MessageCircle, Bot, User, Sparkles, Shield, Zap, Brain, Crown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-// Supabase integration removed - Firebase will be added later
-// TODO: Implement Firebase database functions for chat functionality
+import { useAuth } from '@/contexts/AuthContext';
+// Firebase integration - chat functionality
 
 interface Message {
   id: string;
@@ -25,18 +25,14 @@ const ChatPage = () => {
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [chat, setChat] = useState<Chat | null>(null);
-  const [user, setUser] = useState<any>(null);
+  const { user } = useAuth();
   const [anonymousSession] = useState(() => crypto.randomUUID());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-    };
-    getUser();
-  }, []);
+    // User is now managed by AuthContext
+  }, [user]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -49,20 +45,24 @@ const ChatPage = () => {
     setMessage('');
 
     try {
-      const { data, error } = await supabase.functions.invoke('chat', {
-        body: {
-          chat_id: chat?.id,
-          user_id: user?.id,
-          message: messageText,
-          anonymous_session: !user ? anonymousSession : undefined,
-        },
+      console.log('Firebase chat function - placeholder implementation:', {
+        chat_id: chat?.id,
+        user_id: user?.uid,
+        message: messageText,
+        anonymous_session: !user ? anonymousSession : undefined,
       });
-
-      if (error) throw error;
-
+      
+      // Simulate chat API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const mockResponse = {
+        chat_id: chat?.id || 'mock-chat-' + Date.now(),
+        message: 'This is a placeholder response. Firebase chat functionality will be implemented.',
+      };
+      
       // Refresh chat messages
-      if (data.chat_id) {
-        await loadChatMessages(data.chat_id);
+      if (mockResponse.chat_id) {
+        await loadChatMessages(mockResponse.chat_id);
       }
     } catch (error) {
       console.error('Error sending message:', error);

@@ -1,7 +1,19 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { 
+  signOut as firebaseSignOut,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+  sendPasswordResetEmail,
+  onAuthStateChanged,
+  User as FirebaseUser
+} from 'firebase/auth';
+import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/lib/hooks';
+import { auth, db } from '@/lib/firebase';
 
-// Placeholder User interface for Firebase integration
+// User interface for Firebase
 interface User {
   uid: string;
   email: string | null;
@@ -9,11 +21,37 @@ interface User {
   photoURL: string | null;
 }
 
-// Placeholder Session interface for Firebase integration
+// Session interface for Firebase
 interface Session {
   user: User | null;
   expires_at?: number;
 }
+
+// Helper function to create user document in Firestore
+const createUserDocument = async (user: FirebaseUser, provider: string, displayName?: string) => {
+  const userRef = doc(db, 'users', user.uid);
+  const userDoc = await getDoc(userRef);
+  
+  if (!userDoc.exists()) {
+    await setDoc(userRef, {
+      uid: user.uid,
+      email: user.email,
+      displayName: displayName || user.displayName,
+      photoURL: user.photoURL,
+      provider: provider,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+  }
+};
+
+// Convert Firebase user to our User interface
+const formatUser = (firebaseUser: FirebaseUser): User => ({
+  uid: firebaseUser.uid,
+  email: firebaseUser.email,
+  displayName: firebaseUser.displayName,
+  photoURL: firebaseUser.photoURL,
+});
 
 interface AuthContextType {
   user: User | null;
@@ -47,40 +85,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Simulate initial session check
-    const getInitialSession = async () => {
-      try {
-        // TODO: Replace with Firebase auth check
-        console.log('Firebase auth check - placeholder implementation');
-        
-        // For now, set loading to false after a short delay
-        setTimeout(() => {
-          setLoading(false);
-        }, 1000);
-      } catch (error) {
-        console.error('Error in getInitialSession:', error);
-        setLoading(false);
+    // Set up auth state listener
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        const formattedUser = formatUser(firebaseUser);
+        setUser(formattedUser);
+        setSession({ user: formattedUser });
+      } else {
+        setUser(null);
+        setSession(null);
       }
-    };
+      setLoading(false);
+    });
 
-    getInitialSession();
+    return unsubscribe;
   }, []);
 
   const signOut = async (): Promise<void> => {
     try {
-      // TODO: Replace with Firebase signOut
-      console.log('Firebase signOut - placeholder implementation');
-      
-      // Clear local state
-      setUser(null);
-      setSession(null);
+      await firebaseSignOut(auth);
       
       toast({
         title: "Signed out",
         description: "You have been signed out successfully.",
       });
-    } catch (error) {
-      console.error('Unexpected error during sign out:', error);
+    } catch (error: any) {
+      console.error('Error during sign out:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred during sign out.",
@@ -91,52 +121,47 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signInWithEmail = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      // TODO: Replace with Firebase signInWithEmailAndPassword
-      console.log('Firebase signInWithEmail - placeholder implementation:', { email, password: '***' });
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
       
-      // Simulate authentication delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Create mock user for testing
-      const mockUser: User = {
-        uid: 'mock-user-id',
-        email: email.trim(),
-        displayName: email.split('@')[0],
-        photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(email.split('@')[0])}&background=3b82f6&color=ffffff`,
-      };
-      
-      setUser(mockUser);
-      setSession({ user: mockUser });
+      // Create user document if it doesn't exist
+      await createUserDocument(user, 'email');
       
       toast({
-        title: "Welcome!",
+        title: "Welcome back!",
         description: `Signed in as ${email}`,
       });
       
       return { success: true };
     } catch (error: any) {
-      return { success: false, error: error.message || 'An unexpected error occurred' };
+      console.error('Email sign in error:', error);
+      let errorMessage = 'An unexpected error occurred';
+      
+      if (error.code === 'auth/user-not-found') {
+        errorMessage = 'No account found with this email address';
+      } else if (error.code === 'auth/wrong-password') {
+        errorMessage = 'Incorrect password';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address';
+      } else if (error.code === 'auth/user-disabled') {
+        errorMessage = 'This account has been disabled';
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many failed attempts. Please try again later';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      return { success: false, error: errorMessage };
     }
   };
 
   const signUpWithEmail = async (email: string, password: string, fullName: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      // TODO: Replace with Firebase createUserWithEmailAndPassword
-      console.log('Firebase signUpWithEmail - placeholder implementation:', { email, password: '***', fullName });
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
       
-      // Simulate registration delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Create mock user for testing
-      const mockUser: User = {
-        uid: 'mock-user-id-' + Date.now(),
-        email: email.trim(),
-        displayName: fullName.trim(),
-        photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=3b82f6&color=ffffff`,
-      };
-      
-      setUser(mockUser);
-      setSession({ user: mockUser });
+      // Create user document with display name
+      await createUserDocument(user, 'email', fullName);
       
       toast({
         title: "Account created!",
@@ -145,47 +170,61 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       return { success: true };
     } catch (error: any) {
-      return { success: false, error: error.message || 'An unexpected error occurred' };
+      console.error('Email sign up error:', error);
+      let errorMessage = 'An unexpected error occurred';
+      
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'An account with this email already exists';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'Password should be at least 6 characters';
+      } else if (error.code === 'auth/operation-not-allowed') {
+        errorMessage = 'Email/password accounts are not enabled';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      return { success: false, error: errorMessage };
     }
   };
 
   const signInWithGoogle = async (): Promise<{ success: boolean; error?: string }> => {
     try {
-      // TODO: Replace with Firebase signInWithPopup (Google provider)
-      console.log('Firebase signInWithGoogle - placeholder implementation');
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
       
-      // Simulate OAuth delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Create mock user for testing
-      const mockUser: User = {
-        uid: 'mock-google-user-id',
-        email: 'user@gmail.com',
-        displayName: 'Google User',
-        photoURL: 'https://ui-avatars.com/api/?name=Google+User&background=ea4335&color=ffffff',
-      };
-      
-      setUser(mockUser);
-      setSession({ user: mockUser });
+      // Create user document if it doesn't exist
+      await createUserDocument(user, 'google');
       
       toast({
         title: "Welcome!",
-        description: `Signed in with Google as ${mockUser.email}`,
+        description: `Signed in with Google as ${user.email}`,
       });
       
       return { success: true };
     } catch (error: any) {
-      return { success: false, error: error.message || 'An unexpected error occurred' };
+      console.error('Google sign in error:', error);
+      let errorMessage = 'An unexpected error occurred';
+      
+      if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = 'Sign-in popup was closed';
+      } else if (error.code === 'auth/popup-blocked') {
+        errorMessage = 'Sign-in popup was blocked by the browser';
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        errorMessage = 'Sign-in was cancelled';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      return { success: false, error: errorMessage };
     }
   };
 
   const resetPassword = async (email: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      // TODO: Replace with Firebase sendPasswordResetEmail
-      console.log('Firebase resetPassword - placeholder implementation:', { email });
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await sendPasswordResetEmail(auth, email);
       
       toast({
         title: "Password reset email sent",
@@ -194,7 +233,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       return { success: true };
     } catch (error: any) {
-      return { success: false, error: error.message || 'An unexpected error occurred' };
+      console.error('Password reset error:', error);
+      let errorMessage = 'An unexpected error occurred';
+      
+      if (error.code === 'auth/user-not-found') {
+        errorMessage = 'No account found with this email address';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      return { success: false, error: errorMessage };
     }
   };
 

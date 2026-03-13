@@ -1,13 +1,18 @@
-import React, { useState, useEffect } from "react";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button, Input, Card, CardContent, CardHeader, CardTitle, Badge, useToast } from '@/lib/hooks';
-
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 // 🔑 ADD YOUR GEMINI API KEY HERE (if not using .env.local)
 const GEMINI_API_KEY = "AIzaSyAXNx2T9ck-BEGdcCdcNUVahE_emVh9amU";
 import { firService } from "@/services/firService";
-// Supabase integration removed - Firebase will be added later
-// TODO: Implement Firebase database functions for FIR processing
+import { useAuth } from '@/contexts/AuthContext';
+// Firebase integration - FIR processing functionality
 import { Loader2, CheckCircle, RefreshCw, ExternalLink, MapPin, FileText, ChevronRight, AlertTriangle } from "lucide-react";
 import FIRProcessFlow from "./FIRProcessFlow";
 
@@ -64,6 +69,7 @@ function FIRForm({
   showProcessGuide = true 
 }: FIRFormProps) {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isRephrasing, setIsRephrasing] = useState(false);
@@ -362,8 +368,15 @@ Please provide only the rephrased version, maintaining the same factual content 
     setIsSubmitting(true);
 
     try {
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
+      // Get current user from Firebase AuthContext
+      if (!user) {
+        toast({
+          title: "Authentication Required",
+          description: "Please sign in to submit an FIR.",
+          variant: "destructive"
+        });
+        return;
+      }
       
       // Create FIR with rephrased text if available
       const finalFormData = {
@@ -372,7 +385,7 @@ Please provide only the rephrased version, maintaining the same factual content 
       };
 
       // Submit FIR to local database first
-      const result = await firService.submitFIR(finalFormData, user?.id);
+      const result = await firService.submitFIR(finalFormData, user?.uid);
       
       if (result.success) {
         setIsSubmitted(true);

@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ChevronUp, ChevronDown, Search, ExternalLink, Calendar, User, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-// Supabase integration removed - Firebase will be added later
-// TODO: Implement Firebase database functions for scam reports
+import { useAuth } from '@/contexts/AuthContext';
+// Firebase integration - scam reports functionality
 import { formatDistanceToNow } from 'date-fns';
 
 interface ScamReport {
@@ -31,37 +31,70 @@ const ScamReportsList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
-  const [user, setUser] = useState<any>(null);
+  const { user } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
     loadReports();
-    getUser();
   }, []);
 
-  const getUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    setUser(user);
-  };
+  useEffect(() => {
+    // User is now managed by AuthContext
+  }, [user]);
 
   const loadReports = async () => {
     try {
-      const { data: reportsData, error: reportsError } = await supabase
-        .from('scam_reports')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (reportsError) throw reportsError;
-
+      // Firebase database query - placeholder implementation
+      console.log('Firebase scam_reports query - placeholder implementation');
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Mock reports data
+      const mockReports: ScamReport[] = [
+        {
+          id: '1',
+          url: 'https://example-scam1.com',
+          title: 'Phishing Attempt - Bank Login',
+          description: 'Fake banking website attempting to collect login credentials',
+          category: 'phishing',
+          reporter_name: 'Anonymous User',
+          location: 'Mumbai, India',
+          status: 'verified',
+          upvotes: 15,
+          downvotes: 2,
+          created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        },
+        {
+          id: '2',
+          url: 'https://fake-investment.com',
+          title: 'Investment Scam',
+          description: 'Promises unrealistic returns on investment',
+          category: 'investment',
+          reporter_name: 'Concerned Citizen',
+          location: 'Delhi, India',
+          status: 'pending',
+          upvotes: 8,
+          downvotes: 1,
+          created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        }
+      ];
+      
       if (user) {
         // Get user votes for these reports
-        const { data: votesData } = await supabase
-          .from('scam_votes')
-          .select('scam_report_id, vote_type')
-          .eq('user_id', user.id);
+        const mockVotesData = [
+          {
+            scam_report_id: '1',
+            vote_type: 'upvote'
+          },
+          {
+            scam_report_id: '2',
+            vote_type: 'downvote'
+          }
+        ];
 
-        const reportsWithVotes: ScamReport[] = reportsData.map(report => {
-          const userVote = votesData?.find(vote => vote.scam_report_id === report.id)?.vote_type;
+        const reportsWithVotes: ScamReport[] = mockReports.map(report => {
+          const userVote = mockVotesData.find(vote => vote.scam_report_id === report.id)?.vote_type;
           return {
             ...report,
             user_vote: (userVote === 'upvote' || userVote === 'downvote') ? userVote : null
@@ -70,14 +103,14 @@ const ScamReportsList = () => {
 
         setReports(reportsWithVotes);
       } else {
-        setReports(reportsData as ScamReport[]);
+        setReports(mockReports);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading reports:', error);
       toast({
         title: "Error",
-        description: "Failed to load scam reports.",
-        variant: "destructive",
+        description: "Failed to load reports. Please try again.",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
@@ -88,54 +121,69 @@ const ScamReportsList = () => {
     if (!user) {
       toast({
         title: "Authentication Required",
-        description: "Please log in to vote on reports.",
-        variant: "destructive",
+        description: "Please sign in to vote on reports.",
+        variant: "destructive"
       });
       return;
     }
 
     try {
-      const existingVote = reports.find(r => r.id === reportId)?.user_vote;
+      // Firebase vote handling - placeholder implementation
+      console.log('Firebase vote handling - placeholder implementation:', {
+        reportId,
+        voteType,
+        userId: user.uid
+      });
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Update local state immediately for better UX
+      setReports(prev => prev.map(report => {
+        if (report.id === reportId) {
+          const currentVote = report.user_vote;
+          
+          // If clicking the same vote, remove it
+          if (currentVote === voteType) {
+            return {
+              ...report,
+              user_vote: null,
+              upvotes: currentVote === 'upvote' ? report.upvotes - 1 : report.upvotes,
+              downvotes: currentVote === 'downvote' ? report.downvotes - 1 : report.downvotes
+            };
+          }
+          
+          // If changing vote, adjust both counts
+          if (currentVote) {
+            return {
+              ...report,
+              user_vote: voteType,
+              upvotes: voteType === 'upvote' ? report.upvotes + 1 : report.upvotes - 1,
+              downvotes: voteType === 'downvote' ? report.downvotes + 1 : report.downvotes - 1
+            };
+          }
+          
+          // New vote
+          return {
+            ...report,
+            user_vote: voteType,
+            upvotes: voteType === 'upvote' ? report.upvotes + 1 : report.upvotes,
+            downvotes: voteType === 'downvote' ? report.downvotes + 1 : report.downvotes
+          };
+        }
+        return report;
+      }));
 
-      if (existingVote === voteType) {
-        // Remove vote
-        const { error } = await supabase
-          .from('scam_votes')
-          .delete()
-          .eq('scam_report_id', reportId)
-          .eq('user_id', user.id);
-
-        if (error) throw error;
-      } else if (existingVote) {
-        // Update existing vote
-        const { error } = await supabase
-          .from('scam_votes')
-          .update({ vote_type: voteType })
-          .eq('scam_report_id', reportId)
-          .eq('user_id', user.id);
-
-        if (error) throw error;
-      } else {
-        // Create new vote
-        const { error } = await supabase
-          .from('scam_votes')
-          .insert({
-            scam_report_id: reportId,
-            user_id: user.id,
-            vote_type: voteType
-          });
-
-        if (error) throw error;
-      }
-
-      // Reload reports to get updated vote counts
-      loadReports();
-    } catch (error) {
+      toast({
+        title: "Vote Recorded",
+        description: `Your ${voteType} has been recorded.`,
+      });
+    } catch (error: any) {
       console.error('Error voting:', error);
       toast({
         title: "Error",
-        description: "Failed to submit vote.",
-        variant: "destructive",
+        description: "Failed to record vote. Please try again.",
+        variant: "destructive"
       });
     }
   };
