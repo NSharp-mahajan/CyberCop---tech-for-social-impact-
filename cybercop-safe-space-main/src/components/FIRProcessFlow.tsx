@@ -99,14 +99,16 @@ const FIRProcessFlow: React.FC<FIRProcessFlowProps> = ({ currentStep = 1 }) => {
 
   return (
     <div className="w-full py-12 px-4">
-      <style jsx>{`
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .backface-hidden {
           backface-visibility: hidden;
         }
         .rotate-y-180 {
           transform: rotateY(180deg);
         }
-      `}</style>
+        `
+      }} />
       <div className="max-w-7xl mx-auto">
       {/* Header */}
         <div className="text-center mb-12">
