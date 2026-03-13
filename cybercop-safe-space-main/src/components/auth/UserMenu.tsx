@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { User, LogOut, Settings, Crown, FileText, BarChart3 } from "lucide-react";
+import { User, LogOut, Settings, Crown, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -13,6 +13,7 @@ export const UserMenu = () => {
   const { getCurrentPlan } = useSubscription();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState<'signin' | 'signup'>('signin');
+  const navigate = useNavigate();
 
   const handleSignOut = async () => {
     await signOut();
@@ -88,7 +89,10 @@ export const UserMenu = () => {
       </DropdownMenuTrigger>
       
       <DropdownMenuContent className="w-56" align="end" forceMount>
-        <DropdownMenuLabel className="font-normal">
+        <DropdownMenuLabel
+          className="font-normal cursor-pointer hover:bg-muted/60 rounded-md px-2 py-1 transition-colors"
+          onClick={() => navigate("/dashboard")}
+        >
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{userName}</p>
             <p className="text-xs leading-none text-muted-foreground">
@@ -132,13 +136,6 @@ export const UserMenu = () => {
         <DropdownMenuSeparator />
 
         {/* Navigation Items */}
-        <DropdownMenuItem asChild>
-          <Link to="/dashboard" className="flex items-center">
-            <BarChart3 className="mr-2 h-4 w-4" />
-            <span>Dashboard</span>
-          </Link>
-        </DropdownMenuItem>
-
         <DropdownMenuItem asChild>
           <Link to="/fir-generator" className="flex items-center">
             <FileText className="mr-2 h-4 w-4" />

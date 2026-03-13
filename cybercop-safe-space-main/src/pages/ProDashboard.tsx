@@ -73,13 +73,13 @@ const ProDashboard = () => {
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 mb-4 px-4 py-2 bg-gradient-to-r from-cyber-neon to-cyber-electric text-primary-foreground rounded-full glow-primary">
             <Crown className="h-5 w-5" />
-            <span className="font-semibold">Welcome to Pro!</span>
+            <span className="font-semibold">Your Security Dashboard</span>
           </div>
           <h1 className="text-4xl font-bold text-foreground mb-4">
-            🎉 Congratulations, {user?.user_metadata?.name || user?.email?.split('@')[0] || 'User'}!
+            Welcome back, {user?.user_metadata?.name || user?.email?.split('@')[0] || 'User'} 👋
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Your subscription has been successfully activated. You now have access to all premium cybersecurity features.
+            View your key tools, usage overview, and quick actions from a single place.
           </p>
         </div>
 
@@ -90,10 +90,12 @@ const ProDashboard = () => {
               <div className="flex items-center gap-3">
                 <CheckCircle className="h-8 w-8 text-cyber-success" />
                 <div>
-                  <h3 className="font-semibold text-cyber-success">Pro Subscription Active</h3>
+                  <h3 className="font-semibold text-cyber-success">Account Status</h3>
                   <p className="text-sm text-cyber-success/80">
-                    Plan: {currentPlan?.name} • 
-                    Expires: {currentSubscription?.ends_at ? new Date(currentSubscription.ends_at).toLocaleDateString() : 'Never'}
+                    Plan: {currentPlan?.name || 'Free'}{" "}
+                    {currentSubscription?.ends_at && (
+                      <>• Expires: {new Date(currentSubscription.ends_at).toLocaleDateString()}</>
+                    )}
                   </p>
                 </div>
               </div>
@@ -110,7 +112,7 @@ const ProDashboard = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Zap className="h-5 w-5" />
-              Your Pro Usage This Month
+              Your Usage This Month
             </CardTitle>
             <CardDescription>
               Track your usage across all premium features
@@ -211,7 +213,7 @@ const ProDashboard = () => {
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold mb-4 text-foreground">🔥 Your Premium Chrome Extension</h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
-                Get real-time fraud protection while browsing the web. Your license key is ready!
+                Get real-time fraud protection while browsing the web. Install the extension to stay safe on every site.
               </p>
             </div>
             <ExtensionDownload />
@@ -249,8 +251,7 @@ const ProDashboard = () => {
         <Alert className="mt-8">
           <Shield className="h-4 w-4" />
           <AlertDescription>
-            <strong>Pro Support:</strong> Need help? As a Pro subscriber, you get priority email support. 
-            Contact us at support@cybercop.com and mention your subscription for faster assistance.
+            <strong>Need help?</strong> Contact us at support@cybercop.com and we’ll assist you with any CyberCop feature.
           </AlertDescription>
         </Alert>
       </div>
