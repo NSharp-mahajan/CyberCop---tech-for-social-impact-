@@ -1,0 +1,278 @@
+import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { 
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
+import { 
+  Menu, 
+  FileText, 
+  ScanText, 
+  BookOpen, 
+  BarChart3, 
+  HelpCircle, 
+  MessageCircle, 
+  AlertTriangle, 
+  Users, 
+  Search, 
+  Home, 
+  Newspaper, 
+  KeyRound, 
+  Phone
+} from "lucide-react";
+import { UserMenu } from "@/components/auth/UserMenu";
+import { RobotLogo } from "@/components/RobotLogo";
+
+const Header = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+
+  const securityTools = [
+    { name: "Security Tools Hub", href: "/security-tools", icon: KeyRound, desc: "Password checker & URL scanner" },
+    { name: "AI Detection Hub", href: "/ai-detection", icon: ScanText, desc: "Message, document & voice fraud detection" },
+    { name: "Report Scam", href: "/report-scam", icon: AlertTriangle, desc: "Report suspicious activities" },
+  ];
+
+  const resources = [
+    { name: "Fraud News", href: "/fraud-news", icon: Newspaper, desc: "Latest cybercrime news updates" },
+    { name: "Scam Library", href: "/scam-library", icon: BookOpen, desc: "Browse known scams" },
+    { name: "Community Reports", href: "/community-reports", icon: Users, desc: "View community reports" },
+    { name: "Law Learning", href: "/law-learning", icon: BookOpen, desc: "Learn cybersecurity laws" },
+  ];
+
+  const support = [
+    { name: "FIR Generator", href: "/fir-generator", icon: FileText, desc: "Generate FIR reports" },
+    { name: "Chat AI", href: "/chat", icon: MessageCircle, desc: "AI-powered assistance" },
+    { name: "Dashboard", href: "/dashboard", icon: BarChart3, desc: "View your dashboard" },
+    { name: "Help", href: "/help", icon: HelpCircle, desc: "Get help and support" },
+  ];
+
+  const mobileNavigation = [
+    ...securityTools,
+    ...resources,
+    ...support
+  ];
+
+  const isActive = (href: string) => location.pathname === href;
+
+  return (
+    <header className="sticky top-0 z-50 border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between">
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-2 transition-all hover:scale-105">
+            <RobotLogo size={48} className="text-primary" />
+            <span className="text-2xl font-bold gradient-primary bg-clip-text text-transparent">
+              CyberCop
+            </span>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <div className="hidden lg:flex items-center space-x-6">
+            {/* Home Link */}
+            <Button
+              variant={isActive("/") ? "ghost" : "ghost"}
+              asChild
+              className="transition-all hover:scale-105"
+            >
+              <Link to="/" className="flex items-center space-x-2">
+                <Home className="h-4 w-4" />
+                <span className="text-sm font-medium">Home</span>
+              </Link>
+            </Button>
+
+            <NavigationMenu>
+              <NavigationMenuList>
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className="text-sm font-medium">Security Tools</NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <div className="grid gap-1 p-5 w-[220px] sm:w-[280px] lg:w-[350px] lg:grid-cols-[.75fr_1fr] max-w-[75vw]">
+                      <div className="row-span-3">
+                        <NavigationMenuLink asChild>
+                          <Link
+                            className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
+                            to="/security-tools"
+                          >
+                            <KeyRound className="h-6 w-6" />
+                            <div className="mb-2 mt-4 text-lg font-medium">
+                              Security Tools Hub
+                            </div>
+                            <p className="text-sm leading-tight text-muted-foreground">
+                              Essential security tools for password protection and URL verification
+                            </p>
+                          </Link>
+                        </NavigationMenuLink>
+                      </div>
+                      <div className="grid gap-1">
+                        {securityTools.slice(1).map((item) => (
+                          <NavigationMenuLink key={item.name} asChild>
+                            <Link
+                              to={item.href}
+                              className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                            >
+                              <div className="flex items-center gap-2 text-sm font-medium leading-none">
+                                <item.icon className="h-4 w-4" />
+                                {item.name}
+                              </div>
+                              <p className="text-sm leading-snug text-muted-foreground break-words hyphens-auto">
+                                {item.desc}
+                              </p>
+                            </Link>
+                          </NavigationMenuLink>
+                        ))}
+                      </div>
+                    </div>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className="text-sm font-medium">Resources</NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <div className="grid w-[220px] gap-1 p-4 sm:w-[280px] md:w-[350px] md:grid-cols-2 lg:w-[450px] max-w-[75vw]">
+                      {resources.map((item) => (
+                        <NavigationMenuLink key={item.name} asChild>
+                          <Link
+                            to={item.href}
+                            className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                          >
+                            <div className="flex items-center gap-2 text-sm font-medium leading-none">
+                              <item.icon className="h-4 w-4" />
+                              {item.name}
+                            </div>
+                            <p className="text-sm leading-snug text-muted-foreground break-words hyphens-auto">
+                              {item.desc}
+                            </p>
+                          </Link>
+                        </NavigationMenuLink>
+                      ))}
+                    </div>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className="text-sm font-medium">Support</NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <div className="grid w-[220px] gap-1 p-4 sm:w-[280px] md:w-[350px] md:grid-cols-2 lg:w-[450px] max-w-[75vw]">
+                      {support.map((item) => (
+                        <NavigationMenuLink key={item.name} asChild>
+                          <Link
+                            to={item.href}
+                            className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                          >
+                            <div className="flex items-center gap-2 text-sm font-medium leading-none">
+                              <item.icon className="h-4 w-4" />
+                              {item.name}
+                            </div>
+                            <p className="text-sm leading-snug text-muted-foreground break-words hyphens-auto">
+                              {item.desc}
+                            </p>
+                          </Link>
+                        </NavigationMenuLink>
+                      ))}
+                    </div>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+              </NavigationMenuList>
+            </NavigationMenu>
+
+            {/* User Menu */}
+            <UserMenu />
+          </div>
+
+          {/* Mobile Navigation */}
+          <div className="lg:hidden">
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="transition-all hover:bg-accent">
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[300px] border-l border-border/40">
+                <div className="flex flex-col space-y-1 mt-8">
+                  {/* Home Link for Mobile */}
+                  <div className="mb-4">
+                    <Button
+                      variant={isActive("/") ? "default" : "ghost"}
+                      asChild
+                      className="w-full justify-start"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <Link to="/" className="flex items-center space-x-2">
+                        <Home className="h-4 w-4" />
+                        <span className="text-sm">Home</span>
+                      </Link>
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="mb-2 px-2 text-sm font-semibold text-muted-foreground">Security Tools</h4>
+                      {securityTools.map((item) => (
+                        <Button
+                          key={item.name}
+                          variant={isActive(item.href) ? "default" : "ghost"}
+                          asChild
+                          className="w-full justify-start mb-1"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          <Link to={item.href} className="flex items-center space-x-2">
+                            <item.icon className="h-4 w-4" />
+                            <span className="text-sm">{item.name}</span>
+                          </Link>
+                        </Button>
+                      ))}
+                    </div>
+
+                    <div>
+                      <h4 className="mb-2 px-2 text-sm font-semibold text-muted-foreground">Resources</h4>
+                      {resources.map((item) => (
+                        <Button
+                          key={item.name}
+                          variant={isActive(item.href) ? "default" : "ghost"}
+                          asChild
+                          className="w-full justify-start mb-1"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          <Link to={item.href} className="flex items-center space-x-2">
+                            <item.icon className="h-4 w-4" />
+                            <span className="text-sm">{item.name}</span>
+                          </Link>
+                        </Button>
+                      ))}
+                    </div>
+
+                    <div>
+                      <h4 className="mb-2 px-2 text-sm font-semibold text-muted-foreground">Support</h4>
+                      {support.map((item) => (
+                        <Button
+                          key={item.name}
+                          variant={isActive(item.href) ? "default" : "ghost"}
+                          asChild
+                          className="w-full justify-start mb-1"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          <Link to={item.href} className="flex items-center space-x-2">
+                            <item.icon className="h-4 w-4" />
+                            <span className="text-sm">{item.name}</span>
+                          </Link>
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+};
+
+export default Header;
