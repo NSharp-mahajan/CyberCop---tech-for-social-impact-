@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+CORS(app, origins=['http://localhost:8080', 'http://localhost:3000', 'http://127.0.0.1:8080', 'http://127.0.0.1:3000'], supports_credentials=True)  # Enable CORS for specific origins
 
 # Configuration
 MAX_FILE_SIZE = 25 * 1024 * 1024  # 25MB
