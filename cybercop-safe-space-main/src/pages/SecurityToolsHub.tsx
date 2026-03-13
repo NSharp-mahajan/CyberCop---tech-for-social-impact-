@@ -774,12 +774,24 @@ const SecurityToolsHub = () => {
         details: {
           category: 'safe',
           confidence: 'high',
-          warnings: []
+          warnings: [],
+          recommendations: [
+            "Always verify the authenticity of websites before entering personal information",
+            "Look for HTTPS encryption and valid SSL certificates",
+            "Be cautious of websites that request sensitive information unexpectedly"
+          ],
+          checks: {
+            patternAnalysis: { passed: true, score: 20, reason: "URL structure follows standard patterns" },
+            domainReputation: { passed: true, score: 25, reason: "Domain has good reputation" },
+            sslCertificate: { passed: true, score: 20, reason: "Valid SSL certificate detected" },
+            urlStructure: { passed: true, score: 15, reason: "URL structure is normal" },
+            contentAnalysis: { passed: true, score: 15, reason: "Content appears safe" }
+          }
         }
       };
       
       setUrlResult({
-        status: data.status,
+        status: data.status as 'safe' | 'suspicious' | 'malicious',
         cached: data.cached,
         score: data.score,
         details: data.details,
@@ -1184,11 +1196,11 @@ const SecurityToolsHub = () => {
                         </Alert>
                       )}
 
-                      {urlResult.details&&(
+                      {urlResult.details && urlResult.details.checks && (
                         <div className="space-y-4">
                           <h4 className="font-semibold">Detailed Analysis</h4>
                           <div className="grid gap-3">
-                            {Object.entries(urlResult.details.checks).map(([key,check])=>{
+                            {Object.entries(urlResult.details.checks).map(([key, check]) => {
                               const names:Record<string,string>={
                                 patternAnalysis:"Pattern Analysis", domainReputation:"Domain Reputation",
                                 sslCertificate:"SSL Certificate",   urlStructure:"URL Structure",

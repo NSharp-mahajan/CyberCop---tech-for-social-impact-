@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -34,11 +35,23 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-// Supabase integration removed - Firebase will be added later
-// TODO: Implement Firebase database functions for scam reporting
 import UrlChecker from '@/components/UrlChecker';
 
+interface ScamReport {
+  id: number;
+  url: string;
+  title: string;
+  description: string;
+  category: string;
+  reporterName: string;
+  location: string;
+  status: "pending";
+  votes: number;
+  createdAt: string;
+}
+
 const ReportScamPage = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     url: '',
     title: '',
@@ -223,128 +236,46 @@ const ReportScamPage = () => {
     setIsSubmitting(true);
 
     try {
-      console.log('Submitting report with data:', {
-        url: formData.url,
+      // Create new report object
+      const newReport: ScamReport = {
+        id: Date.now(),
+        url: formData.url.trim(),
         title: formData.title,
         description: formData.description,
         category: formData.category,
-        reporter_name: formData.isAnonymous ? null : formData.reporterName,
-        reporter_user_id: user?.id,
-        location: formData.location || null,
+        reporterName: formData.isAnonymous ? "Anonymous" : formData.reporterName,
+        location: formData.location || "Unknown",
+        status: "pending",
+        votes: 0,
+        createdAt: new Date().toISOString()
+      };
+
+      // Get existing reports from localStorage
+      const existingReports = JSON.parse(localStorage.getItem("communityReports") || "[]");
+      
+      // Add new report to the beginning of the array
+      existingReports.unshift(newReport);
+      
+      // Save to localStorage
+      localStorage.setItem("communityReports", JSON.stringify(existingReports));
+      
+      console.log('Report saved to localStorage:', newReport);
+      
+      // Show success message
+      toast({
+        title: "✅ Report Submitted",
+        description: "Your scam report has been submitted successfully. Thank you for helping keep others safe!",
+        variant: "default"
       });
-
-      // Try Firebase function first
-      try {
-        console.log('Firebase submitScamReport - placeholder implementation:', { formData, user });
-        
-        // Simulate scam report submission
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        // Mock response
-        const data = {
-          success: true,
-          reportId: 'mock-report-' + Date.now(),
-          message: 'Scam report submitted successfully'
-        };
-        
-        console.log('Firebase function response:', { data });
-        
-        if (data && data.error) {
-          if (data.error.includes('already been reported')) {
-            toast({
-              title: "Already Reported",
-              description: "This scam has already been reported by someone else.",
-              variant: "destructive"
-            });
-          } else {
-            toast({
-              title: "Error",
-              description: data.error || 'Failed to submit scam report',
-              variant: "destructive"
-            });
-          }
-        } else if (data.success) {
-          toast({
-            title: "✅ Report Submitted",
-            description: "Your scam report has been submitted successfully. Thank you for helping keep others safe!",
-            variant: "default"
-          });
-          
-          // Reset form
-          setFormData({
-            url: '',
-            title: '',
-            description: '',
-            category: 'phishing',
-            reporterName: '',
-            isAnonymous: true
-          });
-          setFormProgress(0);
-        } else {
-          throw new Error('Unexpected response format');
-        }
-      } catch (error) {
-        console.error('Error submitting report:', error);
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-        
-        // Fallback: Mock database operations
-        const urlHash = 'mock-hash-' + Date.now();
-        
-        // Mock existing report check
-        const existingReport = null; // Simulate no existing report
-        
-        if (existingReport) {
-          toast({
-            title: "Already Reported",
-            description: "This URL has already been reported to the community.",
-            variant: "destructive"
-          });
-          return;
-        }
-
-        // Insert new report
-        const report = {
-          id: 'mock-report-' + Date.now(),
-          url: formData.url.trim(),
-          title: formData.title,
-          description: formData.description,
-          category: formData.category,
-          reporter_name: formData.isAnonymous ? null : formData.reporterName,
-          reporter_user_id: user?.id,
-          location: formData.location || null,
-          created_at: new Date().toISOString()
-        };
-        
-        console.log('Mock report created:', report);
-        
-        toast({
-          title: "✅ Report Submitted",
-          description: "Your scam report has been submitted successfully. Thank you for helping keep others safe!",
-          variant: "default"
-        });
-        
-        console.log('Report created successfully:', report);
-        setIsSuccess(true);
-        toast({
-          title: "Report Submitted Successfully! 🎉",
-          description: "Thank you for helping keep our community safe!",
-        });
-        
-        // Reset form after success animation
-        setTimeout(() => {
-        setFormData({
-          url: '',
-          title: '',
-          description: '',
-          category: '',
-          reporterName: '',
-          location: '',
-          isAnonymous: false,
-        });
-          setCurrentStep(1);
-          setIsSuccess(false);
-        }, 3000);
-      }
+      
+      // Show success screen
+      setIsSuccess(true);
+      
+      // Auto redirect after 2 seconds
+      setTimeout(() => {
+        navigate("/community-reports");
+      }, 2000);
+      
     } catch (error) {
       console.error('Error submitting report:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
