@@ -144,13 +144,16 @@ const Landing = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="flex flex-wrap justify-center gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="group transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-primary/20 border-border/40">
+              <Card
+                key={index}
+                className="group relative w-full sm:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1.333rem)] max-w-sm overflow-hidden border border-primary/30 bg-gradient-to-br from-primary/15 via-background/80 to-primary/5 backdrop-blur-2xl shadow-[0_0_25px_rgba(59,130,246,0.25)] transition-all duration-500 hover:scale-105 hover:shadow-[0_0_40px_rgba(59,130,246,0.6)] hover:border-primary/60 hover:glow-primary"
+              >
                 <CardHeader>
                   <div className="flex items-center justify-between mb-6">
-                    <div className="p-3 rounded-xl bg-primary/10 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300 shadow-lg">
-                      <feature.icon className="h-7 w-7 text-primary" />
+                    <div className="p-3 rounded-xl bg-primary/15 group-hover:bg-primary/25 group-hover:scale-110 transition-all duration-300 shadow-[0_0_20px_rgba(59,130,246,0.45)]">
+                      <feature.icon className="h-7 w-7 text-primary drop-shadow-[0_0_12px_rgba(59,130,246,0.8)]" />
                     </div>
                     <Badge 
                       variant={feature.status === "Available" ? "default" : "secondary"}
