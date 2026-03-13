@@ -18,6 +18,8 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const LawLearning = () => {
+  const XP_PER_LEVEL = 200;
+
   const [currentQuiz, setCurrentQuiz] = useState<any>(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
@@ -155,6 +157,135 @@ const LawLearning = () => {
           explanation: "Under DPDP Act 2023, the age of consent for data processing is 18 years."
         }
       ]
+    },
+    {
+      id: 4,
+      title: "Online Safety Essentials",
+      difficulty: "Beginner",
+      xp: 40,
+      description: "Simple everyday rules to stay safe on the internet",
+      icon: BookOpen,
+      questions: [
+        {
+          question: "If you get a suspicious link on WhatsApp from an unknown number, what should you do first?",
+          options: [
+            "Click it quickly to see what it is",
+            "Forward it to all your contacts",
+            "Ignore it or block the sender",
+            "Reply and ask if it is safe"
+          ],
+          correct: 2,
+          explanation: "Unknown links can lead to phishing or malware. The safest step is to ignore and block the sender instead of engaging."
+        },
+        {
+          question: "Which password is safest to use for your main email account?",
+          options: [
+            "yourname123",
+            "Password@123",
+            "Cyb3r!Guard_2026",
+            "12345678"
+          ],
+          correct: 2,
+          explanation: "A strong password uses a mix of upper and lower case letters, numbers, symbols, and is not based on your personal info."
+        },
+        {
+          question: "You are using a computer in a cybercafé. What should you always do before leaving?",
+          options: [
+            "Just close the browser window",
+            "Log out of all accounts and clear browser history",
+            "Keep the session open for next time",
+            "Save passwords in the browser for convenience"
+          ],
+          correct: 1,
+          explanation: "On shared systems you must log out of all accounts and clear saved data to prevent misuse of your accounts."
+        }
+      ]
+    },
+    {
+      id: 5,
+      title: "Cyber Crime Reporting Process",
+      difficulty: "Intermediate",
+      xp: 80,
+      description: "Learn how and where to report different cyber offences",
+      icon: Target,
+      questions: [
+        {
+          question: "Where should you primarily report serious cyber crimes like online fraud or harassment in India?",
+          options: [
+            "Only to the social media platform",
+            "To the National Cyber Crime Portal",
+            "Only to your bank",
+            "Nowhere, just ignore it"
+          ],
+          correct: 1,
+          explanation: "The National Cyber Crime Reporting Portal (cybercrime.gov.in) is the primary platform to report serious cyber offences in India."
+        },
+        {
+          question: "If you are a victim of UPI fraud, what is the first time‑critical step?",
+          options: [
+            "Wait and see if money comes back",
+            "Immediately call your bank / helpline 1930",
+            "Post about it on social media",
+            "Delete your bank app"
+          ],
+          correct: 1,
+          explanation: "You should immediately contact your bank and the cyber crime helpline 1930 to try and freeze or trace the transaction."
+        },
+        {
+          question: "Why is preserving screenshots, chats, and transaction IDs important while reporting a cyber crime?",
+          options: [
+            "They are only needed for bank refunds",
+            "They help investigators as primary digital evidence",
+            "They are not required if you remember the incident",
+            "They make your complaint look longer"
+          ],
+          correct: 1,
+          explanation: "Digital traces like screenshots and transaction IDs are crucial evidence that help police and banks verify and investigate your complaint."
+        }
+      ]
+    },
+    {
+      id: 6,
+      title: "Advanced Cyber Offences",
+      difficulty: "Advanced",
+      xp: 110,
+      description: "Test your knowledge of complex cybercrime scenarios",
+      icon: Brain,
+      questions: [
+        {
+          question: "A company employee intentionally installs keylogger malware on office systems to steal credentials. This mainly amounts to:",
+          options: [
+            "Simple negligence under IT Act",
+            "Unauthorized access and data theft offences",
+            "Only breach of employment contract",
+            "No offence if company data is not used"
+          ],
+          correct: 1,
+          explanation: "Deliberately installing keyloggers for credential theft qualifies as unauthorized access, data theft and other serious cyber offences."
+        },
+        {
+          question: "Running a public Telegram group that openly sells leaked personal data of citizens can lead to:",
+          options: [
+            "Only platform account suspension",
+            "Civil notice but no criminal liability",
+            "Multiple criminal charges under IT Act and data protection laws",
+            "No issue if group is marked 'educational'"
+          ],
+          correct: 2,
+          explanation: "Trading leaked personal data can attract multiple criminal provisions under IT Act and data protection laws, regardless of how the group is labelled."
+        },
+        {
+          question: "Which principle best describes the idea that organisations should collect only the minimum personal data necessary for a specific purpose?",
+          options: [
+            "Purpose limitation & data minimisation",
+            "Open consent",
+            "Data portability",
+            "Vendor neutrality"
+          ],
+          correct: 0,
+          explanation: "Modern privacy frameworks, including DPDP Act, rely on purpose limitation and data minimisation so that only necessary data is collected and processed."
+        }
+      ]
     }
   ];
 
@@ -178,14 +309,13 @@ const LawLearning = () => {
       setCurrentQuestion(currentQuestion + 1);
     } else {
       setShowResult(true);
-      // Add XP
-      const earnedXP = Math.floor((score + 1) / currentQuiz.questions.length * currentQuiz.xp);
-      setUserXP(userXP + earnedXP);
-      
-      // Level up check
-      if (userXP + earnedXP >= userLevel * 200) {
-        setUserLevel(userLevel + 1);
-      }
+      // Add XP and handle level ups
+      const earnedXP = Math.floor(((score + 1) / currentQuiz.questions.length) * currentQuiz.xp);
+      const totalXP = userXP + earnedXP;
+      const newLevel = Math.floor(totalXP / XP_PER_LEVEL) + 1;
+
+      setUserXP(totalXP);
+      setUserLevel(newLevel);
     }
   };
 
@@ -385,7 +515,9 @@ const LawLearning = () => {
                 <div className="flex items-center justify-center mb-2">
                   <Target className="h-8 w-8 text-green-500" />
                 </div>
-                <div className="text-2xl font-bold">{userLevel * 200 - userXP}</div>
+                <div className="text-2xl font-bold">
+                  {Math.max(userLevel * XP_PER_LEVEL - userXP, 0)}
+                </div>
                 <div className="text-sm text-muted-foreground">XP to Next Level</div>
               </CardContent>
             </Card>
@@ -396,9 +528,17 @@ const LawLearning = () => {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium">Level {userLevel} Progress</span>
-                <span className="text-sm text-muted-foreground">{userXP}/{userLevel * 200} XP</span>
+                <span className="text-sm text-muted-foreground">
+                  {userXP}/{userLevel * XP_PER_LEVEL} XP
+                </span>
               </div>
-              <Progress value={(userXP % 200) / 2} className="mb-2" />
+              <Progress
+                value={Math.min(
+                  100,
+                  ((userXP - (userLevel - 1) * XP_PER_LEVEL) / XP_PER_LEVEL) * 100
+                )}
+                className="mb-2"
+              />
               <div className="text-xs text-muted-foreground text-center">
                 Complete quizzes to earn XP and unlock new levels!
               </div>
@@ -406,11 +546,11 @@ const LawLearning = () => {
           </Card>
 
           {/* Quiz Cards */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
             {quizzes.map((quiz) => {
               const IconComponent = quiz.icon;
               return (
-                <Card key={quiz.id} className="cyber-card">
+                <Card key={quiz.id} className="cyber-card h-full flex flex-col">
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -423,7 +563,7 @@ const LawLearning = () => {
                     </div>
                     <CardDescription>{quiz.description}</CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="mt-auto">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <BookOpen className="h-4 w-4" />
