@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ChevronUp, ChevronDown, Search, ExternalLink, Calendar, User, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase integration removed - Firebase will be added later
+// TODO: Implement Firebase database functions for scam reports
 import { formatDistanceToNow } from 'date-fns';
 
 interface ScamReport {

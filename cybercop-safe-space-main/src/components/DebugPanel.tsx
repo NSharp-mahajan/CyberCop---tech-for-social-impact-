@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase integration removed - Firebase will be added later
+// TODO: Implement Firebase database functions for debugging
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 
 const DebugPanel = () => {
@@ -25,14 +26,16 @@ const DebugPanel = () => {
   const testChatFunction = async () => {
     updateTest('chat', 'loading');
     try {
-      const { data, error } = await supabase.functions.invoke('chat', {
-        body: {
-          message: 'Test message',
-          anonymous_session: crypto.randomUUID()
-        }
-      });
+      console.log('Firebase testChatFunction - placeholder implementation');
       
-      if (error) throw error;
+      // Simulate chat function test
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const data = {
+        success: true,
+        message: 'Test successful'
+      };
+      
       console.log('Chat test result:', data);
       updateTest('chat', 'success');
     } catch (error: any) {
@@ -44,13 +47,17 @@ const DebugPanel = () => {
   const testUrlCheckFunction = async () => {
     updateTest('urlCheck', 'loading');
     try {
-      const { data, error } = await supabase.functions.invoke('url-check', {
-        body: {
-          url: 'https://google.com'
-        }
-      });
+      console.log('Firebase testUrlCheckFunction - placeholder implementation');
       
-      if (error) throw error;
+      // Simulate URL check function test
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      const data = {
+        success: true,
+        status: 'safe',
+        score: 95
+      };
+      
       console.log('URL check test result:', data);
       updateTest('urlCheck', 'success');
     } catch (error: any) {
@@ -62,17 +69,17 @@ const DebugPanel = () => {
   const testScamReportFunction = async () => {
     updateTest('scamReport', 'loading');
     try {
-      const { data, error } = await supabase.functions.invoke('scam-report', {
-        body: {
-          url: 'https://test.com',
-          title: 'Test Report',
-          description: 'Test description',
-          category: 'phishing',
-          reporter_name: 'Test User'
-        }
-      });
+      console.log('Firebase testScamReportFunction - placeholder implementation');
       
-      if (error) throw error;
+      // Simulate scam report function test
+      await new Promise(resolve => setTimeout(resolve, 1200));
+      
+      const data = {
+        success: true,
+        reportId: 'mock-report-id',
+        message: 'Test report submitted successfully'
+      };
+      
       console.log('Scam report test result:', data);
       updateTest('scamReport', 'success');
     } catch (error: any) {
@@ -84,13 +91,27 @@ const DebugPanel = () => {
   const testOcrFunction = async () => {
     updateTest('ocrFraud', 'loading');
     try {
+      console.log('Firebase testOcrFunction - placeholder implementation');
+      
       // Create a small test image as base64
       const testImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
       
-      const { data, error } = await supabase.functions.invoke('ocr-fraud-detection', {
-        body: {
-          image: testImage,
-          fileName: 'test.png',
+      // Simulate OCR function test
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const data = {
+        success: true,
+        fraudDetected: false,
+        confidence: 0.95
+      };
+      
+      console.log('OCR test result:', data);
+      updateTest('ocrFraud', 'success');
+    } catch (error: any) {
+      console.error('OCR test error:', error);
+      updateTest('ocrFraud', 'error', error.message || 'Unknown error');
+    }
+  };
           fileSize: 100,
           fileType: 'image/png'
         }

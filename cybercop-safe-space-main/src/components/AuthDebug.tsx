@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase integration removed - Firebase will be added later
+// TODO: Implement Firebase database functions for auth debugging
 
 export const AuthDebug = () => {
   const { user, session, loading } = useAuth();
@@ -13,27 +14,29 @@ export const AuthDebug = () => {
       loading
     });
 
-    // Check Supabase directly
-    const checkSupabase = async () => {
-      const { data: { session: supabaseSession }, error } = await supabase.auth.getSession();
-      console.log('AuthDebug - Supabase direct check:', {
-        session: !!supabaseSession,
-        user: supabaseSession?.user?.email,
-        error
+    // Check Firebase directly
+    const checkFirebase = async () => {
+      console.log('AuthDebug - Firebase direct check');
+      // Mock session for now
+      const session = {
+        user: { email: 'user@example.com' },
+        expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString()
+      };
+      
+      console.log('AuthDebug - Firebase check:', {
+        session: !!session,
+        user: session?.user?.email,
+        error: null
       });
     };
 
-    checkSupabase();
-
-    // Listen to auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('AuthDebug - Auth state change:', {
-        event,
-        session: !!session,
-        user: session?.user?.email
-      });
-    });
-
+    checkFirebase();
+    
+    // Listen to auth changes (placeholder)
+    const subscription = {
+      unsubscribe: () => console.log('AuthDebug - Firebase auth listener unsubscribed')
+    };
+    
     return () => {
       subscription.unsubscribe();
     };

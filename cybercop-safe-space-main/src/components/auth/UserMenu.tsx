@@ -69,9 +69,9 @@ export const UserMenu = () => {
       .slice(0, 2);
   };
 
-  const userName = user.user_metadata?.name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
+  const userName = user.displayName || user.email?.split('@')[0] || 'User';
   const userEmail = user.email || '';
-  const avatarUrl = user.user_metadata?.avatar_url;
+  const avatarUrl = user.photoURL;
   const currentPlan = getCurrentPlan();
 
   return (

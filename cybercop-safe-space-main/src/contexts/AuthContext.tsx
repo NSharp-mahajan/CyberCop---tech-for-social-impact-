@@ -1,7 +1,19 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import type { User, Session } from '@supabase/supabase-js';
 import { useToast } from '@/lib/hooks';
+
+// Placeholder User interface for Firebase integration
+interface User {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
+}
+
+// Placeholder Session interface for Firebase integration
+interface Session {
+  user: User | null;
+  expires_at?: number;
+}
 
 interface AuthContextType {
   user: User | null;
@@ -35,81 +47,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Get initial session
+    // Simulate initial session check
     const getInitialSession = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
+        // TODO: Replace with Firebase auth check
+        console.log('Firebase auth check - placeholder implementation');
         
-        if (error) {
-          console.error('Error getting session:', error);
-        } else {
-          setSession(session);
-          setUser(session?.user ?? null);
-        }
+        // For now, set loading to false after a short delay
+        setTimeout(() => {
+          setLoading(false);
+        }, 1000);
       } catch (error) {
         console.error('Error in getInitialSession:', error);
-      } finally {
         setLoading(false);
       }
     };
 
     getInitialSession();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
-        
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-
-        // Handle different auth events
-        switch (event) {
-          case 'SIGNED_IN':
-            if (session?.user) {
-              toast({
-                title: "Welcome!",
-                description: `Signed in as ${session.user.email}`,
-              });
-            }
-            break;
-          case 'SIGNED_OUT':
-            // Only show sign out message if there was previously a user
-            // This prevents showing the message during OAuth flows
-            if (user) {
-              toast({
-                title: "Signed out",
-                description: "You have been signed out successfully.",
-              });
-            }
-            break;
-          case 'TOKEN_REFRESHED':
-            console.log('Token refreshed');
-            break;
-          case 'USER_UPDATED':
-            console.log('User updated');
-            break;
-        }
-      }
-    );
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [toast]);
+  }, []);
 
   const signOut = async (): Promise<void> => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Error signing out:', error);
-        toast({
-          title: "Error",
-          description: "Failed to sign out. Please try again.",
-          variant: "destructive",
-        });
-      }
+      // TODO: Replace with Firebase signOut
+      console.log('Firebase signOut - placeholder implementation');
+      
+      // Clear local state
+      setUser(null);
+      setSession(null);
+      
+      toast({
+        title: "Signed out",
+        description: "You have been signed out successfully.",
+      });
     } catch (error) {
       console.error('Unexpected error during sign out:', error);
       toast({
@@ -122,20 +91,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signInWithEmail = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // TODO: Replace with Firebase signInWithEmailAndPassword
+      console.log('Firebase signInWithEmail - placeholder implementation:', { email, password: '***' });
+      
+      // Simulate authentication delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Create mock user for testing
+      const mockUser: User = {
+        uid: 'mock-user-id',
         email: email.trim(),
-        password: password,
+        displayName: email.split('@')[0],
+        photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(email.split('@')[0])}&background=3b82f6&color=ffffff`,
+      };
+      
+      setUser(mockUser);
+      setSession({ user: mockUser });
+      
+      toast({
+        title: "Welcome!",
+        description: `Signed in as ${email}`,
       });
-
-      if (error) {
-        return { success: false, error: error.message };
-      }
-
-      if (data.user) {
-        return { success: true };
-      }
-
-      return { success: false, error: 'Unknown error occurred' };
+      
+      return { success: true };
     } catch (error: any) {
       return { success: false, error: error.message || 'An unexpected error occurred' };
     }
@@ -143,27 +121,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signUpWithEmail = async (email: string, password: string, fullName: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const { data, error } = await supabase.auth.signUp({
+      // TODO: Replace with Firebase createUserWithEmailAndPassword
+      console.log('Firebase signUpWithEmail - placeholder implementation:', { email, password: '***', fullName });
+      
+      // Simulate registration delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Create mock user for testing
+      const mockUser: User = {
+        uid: 'mock-user-id-' + Date.now(),
         email: email.trim(),
-        password: password,
-        options: {
-          data: {
-            name: fullName.trim(),
-            full_name: fullName.trim(),
-            avatar_url: `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=3b82f6&color=ffffff`,
-          },
-        },
+        displayName: fullName.trim(),
+        photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=3b82f6&color=ffffff`,
+      };
+      
+      setUser(mockUser);
+      setSession({ user: mockUser });
+      
+      toast({
+        title: "Account created!",
+        description: `Welcome to CyberCop Safe Space, ${fullName}!`,
       });
-
-      if (error) {
-        return { success: false, error: error.message };
-      }
-
-      if (data.user) {
-        return { success: true };
-      }
-
-      return { success: false, error: 'Unknown error occurred' };
+      
+      return { success: true };
     } catch (error: any) {
       return { success: false, error: error.message || 'An unexpected error occurred' };
     }
@@ -171,21 +151,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signInWithGoogle = async (): Promise<{ success: boolean; error?: string }> => {
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
-        },
+      // TODO: Replace with Firebase signInWithPopup (Google provider)
+      console.log('Firebase signInWithGoogle - placeholder implementation');
+      
+      // Simulate OAuth delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Create mock user for testing
+      const mockUser: User = {
+        uid: 'mock-google-user-id',
+        email: 'user@gmail.com',
+        displayName: 'Google User',
+        photoURL: 'https://ui-avatars.com/api/?name=Google+User&background=ea4335&color=ffffff',
+      };
+      
+      setUser(mockUser);
+      setSession({ user: mockUser });
+      
+      toast({
+        title: "Welcome!",
+        description: `Signed in with Google as ${mockUser.email}`,
       });
-
-      if (error) {
-        return { success: false, error: error.message };
-      }
-
+      
       return { success: true };
     } catch (error: any) {
       return { success: false, error: error.message || 'An unexpected error occurred' };
@@ -194,14 +181,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const resetPassword = async (email: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
+      // TODO: Replace with Firebase sendPasswordResetEmail
+      console.log('Firebase resetPassword - placeholder implementation:', { email });
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast({
+        title: "Password reset email sent",
+        description: `Check your inbox at ${email} for password reset instructions.`,
       });
-
-      if (error) {
-        return { success: false, error: error.message };
-      }
-
+      
       return { success: true };
     } catch (error: any) {
       return { success: false, error: error.message || 'An unexpected error occurred' };

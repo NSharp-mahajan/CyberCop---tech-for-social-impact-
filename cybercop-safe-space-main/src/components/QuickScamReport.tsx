@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { AlertTriangle, Send, Loader2 } from 'lucide-react';
 import { Button, Input, Card, CardContent, CardDescription, CardHeader, CardTitle, useToast } from '@/lib/hooks';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase integration removed - Firebase will be added later
+// TODO: Implement Firebase database functions for scam reporting
 import { Link } from 'react-router-dom';
 
 const QuickScamReport = () => {

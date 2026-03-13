@@ -1,7 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
-import { Button, Input, Card, CardContent, CardDescription, CardHeader, CardTitle, useToast } from '@/lib/hooks';
-import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useToast } from '@/hooks/use-toast';
+// Supabase integration removed - Firebase will be added later
+// TODO: Implement Firebase database functions for chat widget
 import { mockChatService } from '@/services/mockChatService';
 
 interface Message {
@@ -22,14 +26,19 @@ const ChatWidget = () => {
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [chat, setChat] = useState<Chat | null>(null);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{ id: string; email: string } | null>(null);
   const [anonymousSession] = useState(() => crypto.randomUUID());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      console.log('Firebase getUser - placeholder implementation');
+      // Mock user for now
+      const user = {
+        id: 'mock-user-id',
+        email: 'user@example.com'
+      };
       setUser(user);
     };
     getUser();
@@ -46,110 +55,97 @@ const ChatWidget = () => {
     setMessage('');
 
     try {
-      // Try Supabase Edge Function first
-      const { data, error } = await supabase.functions.invoke('chat', {
-        body: {
-          chat_id: chat?.id,
-          user_id: user?.id,
-          message: messageText,
-          anonymous_session: !user ? anonymousSession : undefined,
-        },
-      });
-
-      if (error) throw error;
-
-      // Refresh chat messages
-      if (data.chat_id) {
-        await loadChatMessages(data.chat_id);
-      }
-    } catch (error) {
-      console.log('Supabase function failed, using mock service:', error);
+      console.log('Firebase sendMessage - placeholder implementation:', { messageText, user });
       
-      // Fallback to mock service for local development
-      try {
-        const mockResponse = await mockChatService.sendMessage({
-          chat_id: chat?.id,
-          user_id: user?.id,
-          message: messageText,
-          anonymous_session: !user ? anonymousSession : undefined,
-        });
+      // Simulate chat message sending
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Mock response from the service
+      const mockResponse = await mockChatService.sendMessage({ 
+        message: messageText, 
+        user_id: user?.id,
+        anonymous_session: anonymousSession 
+      });
+      
+      // Create user message
+      const userMessage: Message = {
+        id: crypto.randomUUID(),
+        message: messageText,
+        role: 'user',
+        created_at: new Date().toISOString()
+      };
 
-        // Create a mock chat if none exists
-        if (!chat) {
-          const mockChat = {
-            id: mockResponse.chat_id,
-            title: messageText.substring(0, 50) + (messageText.length > 50 ? '...' : ''),
-            messages: []
-          };
-          setChat(mockChat);
-        }
+      // Create assistant message
+      const assistantMessage: Message = {
+        id: crypto.randomUUID(),
+        message: mockResponse.message || 'Thank you for your message. How can I help you further?',
+        role: 'assistant',
+        created_at: new Date().toISOString()
+      };
 
-        // Add user message
-        const userMessage = {
-          id: crypto.randomUUID(),
-          message: messageText,
-          role: 'user' as const,
-          created_at: new Date().toISOString()
-        };
-
-        // Add assistant response
-        const assistantMessage = {
-          id: crypto.randomUUID(),
-          message: mockResponse.message,
-          role: 'assistant' as const,
-          created_at: new Date().toISOString()
-        };
-
-        setChat(prev => prev ? {
+      // Update chat state
+      if (chat) {
+        setChat(prev => ({
           ...prev,
           messages: [...prev.messages, userMessage, assistantMessage]
-        } : {
+        }));
+      } else {
+        // Create new chat
+        const newChat: Chat = {
           id: mockResponse.chat_id,
           title: messageText.substring(0, 50) + (messageText.length > 50 ? '...' : ''),
           messages: [userMessage, assistantMessage]
-        });
-
-      } catch (mockError) {
-        console.error('Mock service error:', mockError);
-        toast({
-          title: "Error",
-          description: "Failed to send message. Please try again.",
-          variant: "destructive",
-        });
+        };
+        setChat(newChat);
       }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   const loadChatMessages = async (chatId: string) => {
+    console.log('Firebase loadChatMessages - placeholder implementation:', { chatId });
+    
     try {
-      const { data: messages, error } = await supabase
-        .from('chat_messages')
-        .select('*')
-        .eq('chat_id', chatId)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-
-      const { data: chatData, error: chatError } = await supabase
-        .from('chats')
-        .select('*')
-        .eq('id', chatId)
-        .single();
-
-      if (chatError) throw chatError;
-
+      // Simulate loading chat messages
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Mock messages data
+      const messages: Message[] = [
+        {
+          id: '1',
+          message: 'Hello! How can I help you today?',
+          role: 'assistant' as const,
+          created_at: new Date().toISOString()
+        },
+        {
+          id: '2',
+          message: 'This is a mock message for testing.',
+          role: 'user' as const,
+          created_at: new Date().toISOString()
+        }
+      ];
+      
+      const chatData = {
+        id: chatId,
+        title: 'Mock Chat',
+        created_at: new Date().toISOString()
+      };
+      
       setChat({
         id: chatId,
         title: chatData.title || 'New Chat',
-        messages: (messages || []).map(msg => ({
-          ...msg,
-          role: msg.role as 'user' | 'assistant'
-        })),
+        messages: messages
       });
     } catch (error) {
-      console.error('Error loading chat:', error);
+      console.error('Error loading chat messages:', error);
     }
   };
 

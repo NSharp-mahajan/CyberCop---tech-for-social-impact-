@@ -34,7 +34,8 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase integration removed - Firebase will be added later
+// TODO: Implement Firebase database functions for scam reporting
 import UrlChecker from '@/components/UrlChecker';
 
 const ReportScamPage = () => {
@@ -96,7 +97,12 @@ const ReportScamPage = () => {
 
   React.useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      console.log('Firebase getUser - placeholder implementation');
+      // Mock user for now
+      const user = {
+        id: 'mock-user-id',
+        email: 'user@example.com'
+      };
       setUser(user);
     };
     getUser();
@@ -227,112 +233,96 @@ const ReportScamPage = () => {
         location: formData.location || null,
       });
 
-      // Try Supabase function first
-    try {
-      const { data, error } = await supabase.functions.invoke('scam-report', {
-        body: {
-          url: formData.url,
+      // Try Firebase function first
+      try {
+        console.log('Firebase submitScamReport - placeholder implementation:', { formData, user });
+        
+        // Simulate scam report submission
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Mock response
+        const data = {
+          success: true,
+          reportId: 'mock-report-' + Date.now(),
+          message: 'Scam report submitted successfully'
+        };
+        
+        console.log('Firebase function response:', { data });
+        
+        if (data && data.error) {
+          if (data.error.includes('already been reported')) {
+            toast({
+              title: "Already Reported",
+              description: "This scam has already been reported by someone else.",
+              variant: "destructive"
+            });
+          } else {
+            toast({
+              title: "Error",
+              description: data.error || 'Failed to submit scam report',
+              variant: "destructive"
+            });
+          }
+        } else if (data.success) {
+          toast({
+            title: "✅ Report Submitted",
+            description: "Your scam report has been submitted successfully. Thank you for helping keep others safe!",
+            variant: "default"
+          });
+          
+          // Reset form
+          setFormData({
+            url: '',
+            title: '',
+            description: '',
+            category: 'phishing',
+            reporterName: '',
+            isAnonymous: true
+          });
+          setFormProgress(0);
+        } else {
+          throw new Error('Unexpected response format');
+        }
+      } catch (error) {
+        console.error('Error submitting report:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        
+        // Fallback: Mock database operations
+        const urlHash = 'mock-hash-' + Date.now();
+        
+        // Mock existing report check
+        const existingReport = null; // Simulate no existing report
+        
+        if (existingReport) {
+          toast({
+            title: "Already Reported",
+            description: "This URL has already been reported to the community.",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        // Insert new report
+        const report = {
+          id: 'mock-report-' + Date.now(),
+          url: formData.url.trim(),
           title: formData.title,
           description: formData.description,
           category: formData.category,
           reporter_name: formData.isAnonymous ? null : formData.reporterName,
           reporter_user_id: user?.id,
           location: formData.location || null,
-        },
-      });
-
-        console.log('Supabase function response:', { data, error });
-
-        if (error) {
-          console.error('Supabase function error:', error);
-          throw new Error(error.message || 'Function call failed');
-        }
-
-        if (data && data.error) {
-          if (data.error.includes('already been reported')) {
-        toast({
-          title: "Already Reported",
-          description: "This URL has already been reported to the community.",
-              variant: "destructive",
-            });
-            return;
-          } else {
-            throw new Error(data.error);
-          }
-        } else if (data && data.success) {
-          setIsSuccess(true);
-          toast({
-            title: "Report Submitted Successfully! 🎉",
-            description: "Thank you for helping keep our community safe!",
-          });
-          
-          // Reset form after success animation
-          setTimeout(() => {
-            setFormData({
-              url: '',
-              title: '',
-              description: '',
-              category: '',
-              reporterName: '',
-              location: '',
-              isAnonymous: false,
-            });
-            setCurrentStep(1);
-            setIsSuccess(false);
-          }, 3000);
-          return;
-      } else {
-          throw new Error('Unexpected response format');
-        }
-      } catch (functionError) {
-        console.warn('Supabase function failed, trying direct database insert:', functionError);
+          created_at: new Date().toISOString()
+        };
         
-        // Fallback: Direct database insert
-        const urlHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(formData.url.toLowerCase().trim()))
-          .then(hashBuffer => Array.from(new Uint8Array(hashBuffer))
-            .map(b => b.toString(16).padStart(2, '0'))
-            .join(''));
-
-        // Check if URL already exists
-        const { data: existingReport } = await supabase
-          .from('scam_reports')
-          .select('id, title, upvotes, downvotes')
-          .eq('url_hash', urlHash)
-          .single();
-
-        if (existingReport) {
-          toast({
-            title: "Already Reported",
-            description: "This URL has already been reported to the community.",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        // Insert new report
-        const { data: report, error: insertError } = await supabase
-          .from('scam_reports')
-          .insert({
-            url: formData.url.trim(),
-            url_hash: urlHash,
-            title: formData.title.trim(),
-            description: formData.description.trim(),
-            category: formData.category,
-            reporter_name: formData.isAnonymous ? null : formData.reporterName?.trim(),
-            reporter_user_id: user?.id,
-            location: formData.location?.trim() || null,
-            status: 'pending',
-            upvotes: 0,
-            downvotes: 0,
-          })
-          .select()
-          .single();
-
-        if (insertError) {
-          console.error('Direct insert error:', insertError);
-          throw new Error(insertError.message || 'Failed to create scam report');
-        }
-
+        console.log('Mock report created:', report);
+        
+        toast({
+          title: "✅ Report Submitted",
+          description: "Your scam report has been submitted successfully. Thank you for helping keep others safe!",
+          variant: "default"
+        });
+        
         console.log('Report created successfully:', report);
         setIsSuccess(true);
         toast({

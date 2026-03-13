@@ -6,7 +6,8 @@ import { Button, Input, Card, CardContent, CardHeader, CardTitle, Badge, useToas
 // 🔑 ADD YOUR GEMINI API KEY HERE (if not using .env.local)
 const GEMINI_API_KEY = "AIzaSyAXNx2T9ck-BEGdcCdcNUVahE_emVh9amU";
 import { firService } from "@/services/firService";
-import { supabase } from "@/integrations/supabase/client";
+// Supabase integration removed - Firebase will be added later
+// TODO: Implement Firebase database functions for FIR processing
 import { Loader2, CheckCircle, RefreshCw, ExternalLink, MapPin, FileText, ChevronRight, AlertTriangle } from "lucide-react";
 import FIRProcessFlow from "./FIRProcessFlow";
 

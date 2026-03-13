@@ -5,7 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Send, Loader2, MessageCircle, Bot, User, Sparkles, Shield, Zap, Brain, Crown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase integration removed - Firebase will be added later
+// TODO: Implement Firebase database functions for chat functionality
 
 interface Message {
   id: string;
@@ -76,33 +77,41 @@ const ChatPage = () => {
   };
 
   const loadChatMessages = async (chatId: string) => {
+    console.log('Firebase loadChatMessages - placeholder implementation:', { chatId });
+    
     try {
-      const { data: messages, error } = await supabase
-        .from('chat_messages')
-        .select('*')
-        .eq('chat_id', chatId)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-
-      const { data: chatData, error: chatError } = await supabase
-        .from('chats')
-        .select('*')
-        .eq('id', chatId)
-        .single();
-
-      if (chatError) throw chatError;
-
+      // Simulate loading chat messages
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Mock messages data
+      const messages = [
+        {
+          id: '1',
+          message: 'Hello! How can I help you today?',
+          role: 'assistant',
+          created_at: new Date().toISOString()
+        },
+        {
+          id: '2',
+          message: 'This is a mock message for testing.',
+          role: 'user',
+          created_at: new Date().toISOString()
+        }
+      ];
+      
+      const chatData = {
+        id: chatId,
+        title: 'Mock Chat',
+        created_at: new Date().toISOString()
+      };
+      
       setChat({
         id: chatId,
         title: chatData.title || 'New Chat',
-        messages: (messages || []).map(msg => ({
-          ...msg,
-          role: msg.role as 'user' | 'assistant'
-        })),
+        messages: messages
       });
     } catch (error) {
-      console.error('Error loading chat:', error);
+      console.error('Error loading chat messages:', error);
     }
   };
 

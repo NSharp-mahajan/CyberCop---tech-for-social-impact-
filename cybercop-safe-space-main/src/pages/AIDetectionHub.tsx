@@ -32,7 +32,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+// Supabase integration removed - Firebase will be added later
+// TODO: Implement Firebase database functions for AI detection
 import { audioProcessingService } from "@/services/audioProcessingService";
 import { whisperService } from "@/services/whisperService";
 import { FraudRiskMeter } from "@/components/FraudRiskMeter";

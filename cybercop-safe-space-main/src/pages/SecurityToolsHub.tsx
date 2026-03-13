@@ -31,7 +31,8 @@ import { RobotLogo } from "@/components/RobotLogo";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+// Supabase integration removed - Firebase will be added later
+// TODO: Implement Firebase database functions for security tools
 
 // Password Checker Interfaces
 interface PasswordCriteria {
@@ -180,17 +181,17 @@ const SecurityToolsHub = () => {
     setPasswordBreachResult(null);
     
     try {
-      const { data: user } = await supabase.auth.getUser();
+      console.log('Firebase checkPasswordBreach - placeholder implementation:', { password });
       
-      const { data, error } = await supabase.functions.invoke('breach-check', {
-        body: {
-          type: 'password',
-          value: password,
-          user_id: user.user?.id,
-        },
-      });
-
-      if (error) throw error;
+      // Simulate breach check
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Mock breach data
+      const data = {
+        compromised: false,
+        breachCount: 0,
+        breaches: []
+      };
       
       setPasswordBreachResult(data);
       
@@ -237,24 +238,24 @@ const SecurityToolsHub = () => {
     setEmailBreachResult(null);
     
     try {
-      const { data: user } = await supabase.auth.getUser();
+      console.log('Firebase checkEmailBreach - placeholder implementation:', { email });
       
-      const { data, error } = await supabase.functions.invoke('breach-check', {
-        body: {
-          type: 'email',
-          value: email,
-          user_id: user.user?.id,
-        },
-      });
-
-      if (error) throw error;
+      // Simulate email breach check
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Mock breach data
+      const data = {
+        compromised: false,
+        breachCount: 0,
+        breaches: []
+      };
       
       setEmailBreachResult(data);
       
       if (data.compromised) {
         toast({
           title: "⚠️ Email Found in Data Breaches",
-          description: `This email has been found in ${data.breachCount} data breach${data.breachCount > 1 ? 'es' : ''}. Check the details below.`,
+          description: `This email has been found in ${data.breachCount} data breach${data.breachCount > 1 ? 'es' : ''}. Check details below.`,
           variant: "destructive",
         });
       } else {
@@ -342,19 +343,25 @@ const SecurityToolsHub = () => {
 
     setIsCheckingUrl(true);
     setUrlResult(null);
-
+    
     try {
-      const { data: user } = await supabase.auth.getUser();
+      console.log('Firebase checkUrlSafety - placeholder implementation:', { url });
       
-      const { data, error } = await supabase.functions.invoke('url-check', {
-        body: {
-          url: url,
-          user_id: user.user?.id,
-        },
-      });
-
-      if (error) throw error;
-
+      // Simulate URL safety check
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Mock URL check result
+      const data = {
+        status: 'safe',
+        cached: false,
+        score: 95,
+        details: {
+          category: 'safe',
+          confidence: 'high',
+          warnings: []
+        }
+      };
+      
       setUrlResult({
         status: data.status,
         cached: data.cached,

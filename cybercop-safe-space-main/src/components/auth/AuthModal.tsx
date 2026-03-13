@@ -5,7 +5,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Button, Input, Alert, AlertDescription, useAuth, useToast } from '@/lib/hooks';
-import { supabase } from "@/integrations/supabase/client";
 import { RobotLogo } from "@/components/RobotLogo";
 
 interface AuthModalProps {
@@ -20,6 +19,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   defaultTab = 'signin' 
 }) => {
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>(defaultTab);
+  const { signInWithEmail, signUpWithEmail, signInWithGoogle } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -49,34 +49,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password: password,
-      });
-
-      if (error) {
-        if (error.message.includes('Invalid login credentials')) {
-          toast({
-            title: "Login Failed",
-            description: "Invalid email or password. Please check your credentials.",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Login Failed",
-            description: error.message,
-            variant: "destructive",
-          });
-        }
-        return;
-      }
-
-      if (data.user) {
+      const result = await signInWithEmail(email.trim(), password);
+      
+      if (result.success) {
         toast({
           title: "Welcome back!",
           description: "You have successfully signed in.",
         });
         handleClose();
+      } else {
+        toast({
+          title: "Login Failed",
+          description: result.error || "Invalid email or password. Please check your credentials.",
+          variant: "destructive",
+        });
       }
     } catch (error: any) {
       toast({
@@ -114,19 +100,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email: email.trim(),
-        password: password,
-        options: {
-          data: {
-            name: fullName.trim(),
-            avatar_url: `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=3b82f6&color=ffffff`,
-          },
-        },
-      });
-
-      if (error) {
-        if (error.message.includes('already registered')) {
+      const result = await signUpWithEmail(email.trim(), password, fullName.trim());
+      
+      if (result.success) {
+        toast({
+          title: "Account Created!",
+          description: "Welcome to CyberCop Safe Space. You're now signed in.",
+        });
+        handleClose();
+      } else {
+        if (result.error?.includes('already registered')) {
           toast({
             title: "Account Exists",
             description: "An account with this email already exists. Please sign in instead.",
@@ -136,28 +119,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         } else {
           toast({
             title: "Registration Failed",
-            description: error.message,
+            description: result.error || "Failed to create account. Please try again.",
             variant: "destructive",
           });
-        }
-        return;
-      }
-
-      if (data.user) {
-        if (data.user.email_confirmed_at) {
-          // Email already confirmed (usually in development)
-          toast({
-            title: "Account Created!",
-            description: "Welcome to CyberCop Safe Space. You're now signed in.",
-          });
-          handleClose();
-        } else {
-          // Email confirmation required
-          toast({
-            title: "Check Your Email",
-            description: "We've sent you a confirmation link. Please check your email and click the link to activate your account.",
-          });
-          handleClose();
         }
       }
     } catch (error: any) {
@@ -174,25 +138,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
-        },
-      });
-
-      if (error) {
+      const result = await signInWithGoogle();
+      
+      if (result.success) {
+        // Modal will close automatically due to auth state change
+        toast({
+          title: "Google Sign-In Successful",
+          description: "You have been signed in with Google.",
+        });
+      } else {
         toast({
           title: "Google Sign-In Failed",
-          description: error.message,
+          description: result.error || "Failed to sign in with Google. Please try again.",
           variant: "destructive",
         });
       }
-      // Don't close the modal here - let the OAuth flow complete
     } catch (error: any) {
       toast({
         title: "Error",

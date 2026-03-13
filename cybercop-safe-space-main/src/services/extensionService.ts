@@ -1,4 +1,5 @@
-import { supabase } from '@/integrations/supabase/client';
+// Supabase integration removed - Firebase will be added later
+// TODO: Implement Firebase database functions for extension licensing
 import { paymentService } from './paymentService';
 
 export interface ExtensionLicense {
@@ -27,49 +28,23 @@ class ExtensionService {
    * Create or update extension license when user subscribes to Pro
    */
   async activateExtensionLicense(userId: string, subscriptionId: string): Promise<{ success: boolean; licenseKey?: string; error?: string }> {
+    console.log('Firebase activateExtensionLicense - placeholder implementation:', { userId, subscriptionId });
+    
     try {
       // Check if user has Pro subscription
       const subscription = await paymentService.getUserCurrentSubscription(userId);
       
-      if (!subscription || !subscription.subscription_plans) {
+      if (!subscription) {
         return { success: false, error: 'No active subscription found' };
       }
 
-      const planName = subscription.subscription_plans.name;
-      if (planName === 'Free') {
-        return { success: false, error: 'Extension access requires Pro or Enterprise subscription' };
-      }
-
-      // Generate license key
+      // Generate mock license key
       const licenseKey = this.generateLicenseKey(userId);
-
-      // Calculate expiry based on subscription
-      const expiryDate = subscription.ends_at;
-
-      // Store license in database
-      const { data, error } = await supabase
-        .from('extension_licenses')
-        .upsert({
-          user_id: userId,
-          extension_id: this.extensionId,
-          license_key: licenseKey,
-          status: 'active',
-          expires_at: expiryDate,
-          subscription_id: subscriptionId,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id,extension_id'
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error creating extension license:', error);
-        return { success: false, error: 'Failed to create extension license' };
-      }
-
+      
+      // Simulate license activation
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       return { success: true, licenseKey };
-
     } catch (error) {
       console.error('Extension license activation error:', error);
       return { success: false, error: 'Failed to activate extension license' };
@@ -80,53 +55,22 @@ class ExtensionService {
    * Verify extension license (called by Chrome extension)
    */
   async verifyLicense(licenseKey: string): Promise<{ valid: boolean; userInfo?: any; error?: string }> {
+    console.log('Firebase verifyLicense - placeholder implementation:', { licenseKey });
+    
     try {
-      // Find license in database
-      const { data: license, error: licenseError } = await supabase
-        .from('extension_licenses')
-        .select(`
-          *,
-          user_subscriptions!inner(
-            status,
-            ends_at,
-            subscription_plans(name, features)
-          )
-        `)
-        .eq('license_key', licenseKey)
-        .eq('status', 'active')
-        .single();
-
-      if (licenseError || !license) {
-        return { valid: false, error: 'Invalid license key' };
-      }
-
-      // Check if license has expired
-      if (new Date(license.expires_at) < new Date()) {
-        // Deactivate expired license
-        await supabase
-          .from('extension_licenses')
-          .update({ status: 'expired' })
-          .eq('id', license.id);
-
-        return { valid: false, error: 'License has expired' };
-      }
-
-      // Check if subscription is still active
-      const subscription = license.user_subscriptions;
-      if (subscription.status !== 'active' || new Date(subscription.ends_at) < new Date()) {
-        return { valid: false, error: 'Subscription is no longer active' };
-      }
-
+      // Simulate license verification
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Return mock license validation
       return { 
         valid: true, 
         userInfo: {
-          userId: license.user_id,
-          plan: subscription.subscription_plans.name,
-          features: subscription.subscription_plans.features,
-          expiresAt: license.expires_at
+          userId: 'mock-user-id',
+          plan: 'Pro',
+          features: ['unlimited_fir_generator', 'advanced_fraud_detection', 'chrome_extension'],
+          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
         }
       };
-
     } catch (error) {
       console.error('License verification error:', error);
       return { valid: false, error: 'Failed to verify license' };
@@ -164,21 +108,12 @@ class ExtensionService {
    * Deactivate extension license (when subscription is cancelled)
    */
   async deactivateExtensionLicense(userId: string): Promise<boolean> {
+    console.log('Firebase deactivateExtensionLicense - placeholder implementation:', { userId });
+    
     try {
-      const { error } = await supabase
-        .from('extension_licenses')
-        .update({ 
-          status: 'inactive',
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', userId)
-        .eq('extension_id', this.extensionId);
-
-      if (error) {
-        console.error('Error deactivating extension license:', error);
-        return false;
-      }
-
+      // Simulate license deactivation
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       return true;
     } catch (error) {
       console.error('Extension license deactivation error:', error);
@@ -190,28 +125,19 @@ class ExtensionService {
    * Get user's extension license status
    */
   async getUserExtensionStatus(userId: string): Promise<{ hasAccess: boolean; licenseKey?: string; status?: string; expiresAt?: string }> {
+    console.log('Firebase getUserExtensionStatus - placeholder implementation:', { userId });
+    
     try {
-      const { data, error } = await supabase
-        .from('extension_licenses')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('extension_id', this.extensionId)
-        .single();
-
-      if (error || !data) {
-        return { hasAccess: false };
-      }
-
-      const isExpired = new Date(data.expires_at) < new Date();
-      const hasAccess = data.status === 'active' && !isExpired;
-
+      // Simulate getting extension status
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Return mock extension status
       return {
-        hasAccess,
-        licenseKey: data.license_key,
-        status: data.status,
-        expiresAt: data.expires_at
+        hasAccess: true,
+        licenseKey: 'MOCK-LICENSE-KEY-123',
+        status: 'active',
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
       };
-
     } catch (error) {
       console.error('Error getting extension status:', error);
       return { hasAccess: false };

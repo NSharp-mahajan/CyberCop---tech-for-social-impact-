@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+// Supabase integration removed - Firebase will be added later
+// TODO: Implement Firebase database functions for auth callback
 import { useToast } from "@/hooks/use-toast";
 
 const AuthCallback = () => {

@@ -1,5 +1,5 @@
-import { supabase } from '@/integrations/supabase/client';
-import { TablesInsert } from '@/integrations/supabase/types';
+// Supabase integration removed - Firebase will be added later
+// TODO: Implement Firebase database functions for FIR processing
 
 export interface FIRData {
   name: string;
@@ -18,129 +18,100 @@ export interface FIRSubmissionResult {
   error?: string;
 }
 
+export interface FIRRecord {
+  id: string;
+  name: string;
+  address: string;
+  contact: string;
+  incident_date: string;
+  incident_location: string;
+  incident_description: string;
+  language: string;
+  status: string;
+  created_at: string;
+  user_id?: string;
+  anonymous_session?: string;
+}
+
 export const firService = {
   async submitFIR(data: FIRData, userId?: string): Promise<FIRSubmissionResult> {
+    console.log('Firebase submitFIR - placeholder implementation:', { data, userId });
+    
     try {
-      // Debug: Check authentication state
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      console.log('🔍 Auth Debug:', {
-        providedUserId: userId,
-        actualAuthUser: user?.id,
-        isAuthenticated: !!user,
-        authError: authError?.message
-      });
-
-      // Prepare the data for database insertion
-      const firData: TablesInsert<'fir_reports'> = {
-        name: data.name,
-        address: data.address,
-        contact: data.contact,
-        incident_date: data.date,
-        incident_location: data.location,
-        incident_description: data.incident,
-        language: data.language,
-        status: 'pending',
-        user_id: userId || null,
-        anonymous_session: !userId ? crypto.randomUUID() : null,
-      };
-
-      // Debug: Log the data being inserted
-      console.log('📝 FIR Data being inserted:', {
-        ...firData,
-        user_id: firData.user_id,
-        isAnonymous: !firData.user_id
-      });
-
-      // Insert the FIR into the database
-      const { data: result, error } = await supabase
-        .from('fir_reports')
-        .insert(firData)
-        .select('id, created_at')
-        .single();
-
-      if (error) {
-        console.error('❌ Database Error:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
-        return {
-          success: false,
-          error: error.message || 'Failed to submit FIR'
-        };
-      }
-
-      console.log('✅ FIR inserted successfully:', result);
-
-      // Generate a FIR number (you can customize this format)
-      const firNumber = `FIR-${new Date().getFullYear()}-${String(result.id).slice(-8).toUpperCase()}`;
-
-      console.log('🔢 Generated FIR number:', firNumber);
-
-      // Update the FIR with the generated number
-      const { error: updateError } = await supabase
-        .from('fir_reports')
-        .update({ fir_number: firNumber })
-        .eq('id', result.id);
-
-      if (updateError) {
-        console.error('Error updating FIR number:', updateError);
-        // Don't fail the submission if we can't update the number
-      }
-
+      // Simulate FIR submission
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Generate mock FIR details
+      const firId = 'mock-fir-' + Date.now();
+      const firNumber = 'FIR/' + new Date().getFullYear() + '/' + Math.floor(Math.random() * 10000);
+      
       return {
         success: true,
-        firId: result.id,
-        firNumber: firNumber
+        firId,
+        firNumber
       };
-
     } catch (error) {
-      console.error('Unexpected error submitting FIR:', error);
+      console.error('FIR submission error:', error);
       return {
         success: false,
-        error: 'An unexpected error occurred while submitting the FIR'
+        error: 'Failed to submit FIR'
       };
     }
   },
 
-  async getUserFIRs(userId: string) {
+  async getUserFIRs(userId: string): Promise<FIRRecord[]> {
+    console.log('Firebase getUserFIRs - placeholder implementation:', { userId });
+    
     try {
-      const { data, error } = await supabase
-        .from('fir_reports')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching user FIRs:', error);
-        return { success: false, error: error.message };
-      }
-
-      return { success: true, data };
+      // Simulate fetching user FIRs
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Return mock FIR records
+      return [
+        {
+          id: 'mock-fir-1',
+          name: 'John Doe',
+          address: '123 Main St',
+          contact: '1234567890',
+          incident_date: new Date().toISOString(),
+          incident_location: 'Mumbai',
+          incident_description: 'Sample incident description',
+          language: 'english',
+          status: 'pending',
+          created_at: new Date().toISOString(),
+          user_id: userId
+        }
+      ];
     } catch (error) {
-      console.error('Unexpected error fetching FIRs:', error);
-      return { success: false, error: 'An unexpected error occurred' };
+      console.error('Error fetching user FIRs:', error);
+      return [];
     }
   },
 
-  async getFIRById(firId: string) {
+  async getFIRById(firId: string): Promise<FIRRecord | null> {
+    console.log('Firebase getFIRById - placeholder implementation:', { firId });
+    
     try {
-      const { data, error } = await supabase
-        .from('fir_reports')
-        .select('*')
-        .eq('id', firId)
-        .single();
-
-      if (error) {
-        console.error('Error fetching FIR:', error);
-        return { success: false, error: error.message };
-      }
-
-      return { success: true, data };
+      // Simulate fetching FIR by ID
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Return mock FIR record
+      return {
+        id: firId,
+        name: 'John Doe',
+        address: '123 Main St',
+        contact: '1234567890',
+        incident_date: new Date().toISOString(),
+        incident_location: 'Mumbai',
+        incident_description: 'Sample incident description',
+        language: 'english',
+        status: 'pending',
+        created_at: new Date().toISOString(),
+        user_id: 'mock-user-id'
+      };
     } catch (error) {
-      console.error('Unexpected error fetching FIR:', error);
-      return { success: false, error: 'An unexpected error occurred' };
+      console.error('Error fetching FIR by ID:', error);
+      return null;
     }
   }
 };

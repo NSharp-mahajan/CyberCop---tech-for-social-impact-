@@ -4,7 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Shield, ShieldCheck, ShieldX, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase integration removed - Firebase will be added later
+// TODO: Implement Firebase database functions for URL checking
 
 interface UrlCheckerProps {
   className?: string;
